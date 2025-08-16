@@ -1,0 +1,26 @@
+{
+  "name": "Siber Macera",
+  "short_name": "Siber Macera",
+  "description": "Siber güvenlik eğitim oyunu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1428",
+  "theme_color": "#0a1428",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/oyungirisekranı.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/oyungirisekranı.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "games", "security"],
+  "lang": "tr-TR"
+} 

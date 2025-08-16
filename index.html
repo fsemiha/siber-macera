@@ -1,0 +1,2432 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a1428">
+    <meta name="description" content="Siber güvenlik eğitim oyunu - Parola gücü, paylaş/sakla ve oltalama testi">
+    <meta name="keywords" content="siber güvenlik, eğitim, oyun, parola, phishing">
+    <meta name="author" content="Teknofest">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="apple-mobile-web-app-title" content="Siber Macera">
+    <title>Siber Macera</title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="assets/oyungirisekranı.svg">
+    <!-- Font preload for faster loading -->
+    <link rel="preload" href="fonts/Gilmer Regular.otf" as="font" type="font/otf" crossorigin>
+    <link rel="preload" href="fonts/Gilmer Light.otf" as="font" type="font/otf" crossorigin>
+    <link rel="preload" href="fonts/Gilmer Bold.otf" as="font" type="font/otf" crossorigin>
+    <link rel="preload" href="fonts/conthrax-sb.otf" as="font" type="font/otf" crossorigin>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" defer></script>
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js" defer></script>
+  </head>
+  <body>
+      <!-- Yükleme Ekranı -->
+      <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, #0a1428 0%, #1a2844 50%, #2a3c66 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+          <img src="assets/oyungirisekranı.svg" alt="Oyun Giriş Ekranı" style="max-width: 80%; max-height: 40%; margin-bottom: 30px;" loading="eager">
+          <div style="color: #ffaa00; font-family: 'Gilmer Light', Arial, sans-serif; font-size: 1.2rem; margin-bottom: 30px; text-align: center;">
+              Oyun yükleniyor...
+          </div>
+          <div style="width: 200px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden;">
+              <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #00ff99, #0066cc); border-radius: 3px; animation: loading 2s ease-in-out infinite;"></div>
+          </div>
+      </div>
+      
+      <div class="background">
+          <img src="assets/Asset 4.svg" alt="Arka Plan" class="background-img" loading="lazy">
+          <img src="assets/Asset 5.svg" alt="Siber Güvenlik Başkanlığı" class="logo" loading="lazy">
+        <!-- Ana Panel -->
+        <div class="center-panel" id="main-panel">
+            <div class="main-title-panel">
+                <img src="assets/Asset 13.svg" alt="Siber Macera" class="main-title-svg" loading="lazy">
+                <div class="inside-panel">
+                    <div class="panel-desc">Siber sırları çöz, oyunu kazan, güvende kal!</div>
+                    <div class="main-buttons">
+                        <img src="assets/Asset 9.svg" alt="Parola Gücü" class="main-btn-svg" loading="lazy">
+                        <img src="assets/Asset 10.svg" alt="Paylaş/Sakla" class="main-btn-svg" loading="lazy">
+                        <img src="assets/Asset 11.svg" alt="Oltalama Testi" class="main-btn-svg" loading="lazy">
+                        <img src="assets/Asset 12.svg" alt="Hemen Başla" class="main-btn-svg start-svg" id="start-btn" loading="lazy">
+                    </div>
+                    <div class="qr-section" style="margin-top: 20px; text-align: center;">
+                        <div style="color: #ffaa00; font-size: 1rem; margin-bottom: 10px;">📱 Telefonda Oyna</div>
+                        <div id="qr-code-container" style="display: inline-block; background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;"></div>
+                        <div style="color: #cccccc; font-size: 0.8rem;">QR kodu telefonunla okut</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Kullanıcı Adı Paneli -->
+        <div class="center-panel" id="username-panel" style="display:none;">
+            <div class="main-title-panel">
+                <img src="assets/Asset 13.svg" alt="Siber Macera" class="main-title-svg" loading="lazy">
+                <div class="inside-panel">
+                    <div class="panel-desc">Macaraya başlamak için<br>kod adınızı giriniz.</div>
+                    <div class="input-svg-wrapper">
+                        <img src="assets/Asset 14.svg" alt="Input Alanı" class="input-svg" loading="lazy">
+                        <input type="text" class="username-input-on-svg" placeholder="Kod adınız..." id="username-input">
+                    </div>
+                    <img src="assets/Asset 15.svg" alt="Oyuna Başla" class="main-btn-svg start-svg" id="play-btn" loading="lazy">
+                </div>
+            </div>
+        </div>
+        <!-- Parola Gücü Paneli -->
+        <div class="center-panel" id="password-panel" style="display:none;">
+            <div class="password-panel-outer">
+                <img src="assets/Asset 27.svg" alt="Panel Çerçeve" class="password-panel-bg" loading="lazy">
+                <!-- Üst Bilgiler -->
+                <div class="password-panel-top">
+                  <div class="svg-box">
+                    <img src="assets/Asset 28.svg" class="svg-bg" loading="lazy">
+                    <div class="svg-text" id="timer">Süre: 00:00</div>
+                  </div>
+                  <div class="svg-box">
+                    <img src="assets/Asset 29.svg" class="svg-bg" loading="lazy">
+                    <div class="svg-text">Puan: <span id="score">0</span></div>
+                  </div>
+                </div>
+                <!-- Başlık ve Açıklama -->
+                <div class="password-panel-content">
+                    <img src="assets/Asset 34.svg" alt="Güvenlik İkonu" class="security-icon" loading="lazy">
+                    <div class="password-title">PAROLA GÜCÜ</div>
+                    <div class="password-desc" id="password-desc">Parolanızı girin ve gücünü test edin.</div>
+                    <div class="input-svg-wrapper password-input-wrapper" id="password-input-wrapper">
+                        <img src="assets/Asset 32.svg" alt="Parola Input" class="input-svg" loading="lazy">
+                        <input type="password" class="username-input-on-svg password-input" placeholder="Parolanız..." id="password-input-1">
+                    </div>
+                    <div class="input-svg-wrapper password-input-wrapper" id="password-confirm-wrapper" style="margin-top: 12px;">
+                        <img src="assets/Asset 32.svg" alt="Parola Onay Input" class="input-svg" loading="lazy">
+                        <input type="password" class="username-input-on-svg password-input" placeholder="Parolayı tekrar girin..." id="password-input-2">
+                    </div>
+                    <div id="password-match-message" style="text-align: center; margin: 8px 0; font-size: 0.9rem; color: #ff4444;"></div>
+                    <div class="password-check-btn-wrapper" id="password-check-btn-wrapper">
+                        <img src="assets/Asset 33.svg" alt="Kontrol Et" class="password-check-btn" id="check-password-btn" style="opacity: 0.5; pointer-events: none;" loading="lazy">
+                    </div>
+                    <div class="password-result" id="password-result" style="display:none;">
+                        <div id="strength-label"></div>
+                        <div id="crack-time"></div>
+                        <div id="congrats-message"></div>
+                        <div id="next-task-btn" class="next-task-btn" style="display:none;">
+                            <img src="assets/Asset 35.svg" alt="Paylaş/Sakla Görevine Geç" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- PAYLAŞ/SAKLA Paneli -->
+        <div class="center-panel" id="share-panel" style="display:none;">
+            <div class="password-panel-outer">
+                <img src="assets/Asset 27.svg" alt="Panel Çerçeve" class="password-panel-bg">
+                <div class="password-panel-top">
+                  <div class="svg-box">
+                    <img src="assets/Asset 28.svg" class="svg-bg">
+                    <div class="svg-text" id="timer-share">Süre: 00:00</div>
+                  </div>
+                  <div class="svg-box">
+                    <img src="assets/Asset 29.svg" class="svg-bg">
+                    <div class="svg-text">Puan: <span id="score-share">0</span></div>
+                  </div>
+                </div>
+                <div class="password-panel-content">
+                    <img src="assets/Asset 36.svg" alt="Paylaş Sakla İkon" class="security-icon">
+                    <div class="password-title">PAYLAŞ/SAKLA</div>
+                    <div class="password-desc">Aşağıdaki bilgilerden hangilerini güvenle paylaşabileceğini seç:</div>
+                    
+                    <div id="share-questions-container" class="share-questions-container">
+                        <!-- Sorular buraya dinamik olarak eklenecek -->
+                    </div>
+                    
+                    <div id="continue-to-phishing-btn" class="continue-btn" style="display:block !important; text-align: center; margin-top: 30px; width: 100%; padding: 20px; position: relative; z-index: 100; visibility: visible !important; opacity: 1 !important;" onclick="checkShareAnswers()">
+                        <img src="assets/oltalamatestinegec.svg" alt="Oltalama Testine Geç" style="max-width: 350px; width: 100%; cursor: pointer; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    
+                    <div id="share-results" class="share-results" style="display:none;">
+                        <!-- Sonuçlar burada gösterilecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PHISHING TEST Paneli -->
+        <div class="center-panel" id="phishing-panel" style="display:none;">
+            <div class="password-panel-outer">
+                <img src="assets/Asset 27.svg" alt="Panel Çerçeve" class="password-panel-bg">
+                <div class="password-panel-top">
+                  <div class="svg-box">
+                    <img src="assets/Asset 28.svg" class="svg-bg">
+                    <div class="svg-text" id="timer-phishing">Süre: 00:00</div>
+                  </div>
+                  <div class="svg-box">
+                    <img src="assets/Asset 29.svg" class="svg-bg">
+                    <div class="svg-text">Puan: <span id="score-phishing">0</span></div>
+                  </div>
+                </div>
+                <div class="password-panel-content">
+                    <img src="assets/Asset 30.svg" alt="Phishing Test İkon" class="security-icon">
+                    <div class="password-title">OLTALAMA TESTİ</div>
+                    <div class="password-desc" id="phishing-desc">Instagram şifrenizi güncellemeniz gerekiyor. Buraya tıklayın.<br>Link adresi: insta-security.verify-update.ru</div>
+                                         <div class="phishing-buttons-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 50px; width: 100%; max-width: 600px;">
+                                                 <div class="phishing-button" data-answer="wrong" style="position: relative; cursor: pointer; transition: all 0.3s ease;">
+                             <img src="assets/Asset 31.svg" style="width: 100%; height: auto; min-height: 60px;">
+                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: 'Gilmer Light', sans-serif; font-size: 1rem; text-align: center; width: 90%; line-height: 1.2;">Link gerçek gibi, tıklarım.</div>
+                         </div>
+                         <div class="phishing-button" data-answer="correct" style="position: relative; cursor: pointer; transition: all 0.3s ease;">
+                             <img src="assets/Asset 31.svg" style="width: 100%; height: auto; min-height: 60px;">
+                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: 'Gilmer Light', sans-serif; font-size: 1rem; text-align: center; width: 90%; line-height: 1.2;">Adres tuhaf, dikkatli olurum.</div>
+                         </div>
+                         <div class="phishing-button" data-answer="wrong" style="position: relative; cursor: pointer; transition: all 0.3s ease;">
+                             <img src="assets/Asset 31.svg" style="width: 100%; height: auto; min-height: 60px;">
+                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: 'Gilmer Light', sans-serif; font-size: 1rem; text-align: center; width: 90%; line-height: 1.2;">Şifreyi yazar geçerim.</div>
+                         </div>
+                    </div>
+                    <div id="phishing-explanation" class="share-explanation"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FINAL SKOR Paneli -->
+        <div class="final-score-wrapper" id="final-score-panel" style="display:none;">
+            <div class="final-score-container">
+                <img src="assets/Asset 21.svg" alt="Skor Panel Çerçeve" class="final-score-bg">
+                <div class="final-score-content">
+                    <img src="assets/Asset 23.svg" alt="Yıldız İkon" class="final-score-star">
+                    <div class="final-score-title">Tebrikler! Siber Güvenlik Macerasını Tamamladın.</div>
+
+                    <div class="final-score-row">
+                        <span>Kullanıcı Adı</span><span id="final-username">İsim</span>
+                    </div>
+                    <div class="final-score-row">
+                        <span>Parola Gücü Ölçme</span><span id="final-password-score">30 Puan</span>
+                    </div>
+                    <div class="final-score-row">
+                        <span>Paylaş/Sakla Görevi</span><span id="final-share-score">190 Puan</span>
+                    </div>
+                    <div class="final-score-row">
+                        <span>Oltalama Testi</span><span id="final-phishing-score">0 Puan</span>
+                    </div>
+                    <div class="final-score-row bold">
+                        <span>Toplam Süre</span><span id="final-total-time">00:34</span>
+                    </div>
+                    <div class="final-score-row bold total">
+                        <span>Toplam Puan</span><span id="final-total-score">220</span>
+                    </div>
+
+                    <div class="final-back-btn" id="final-back-btn">
+                        <img src="assets/Asset 22.svg" alt="Ana Ekrana Dön">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SKOR TABLOSU Paneli -->
+        <div class="center-panel" id="scoreboard-panel" style="display:none;">
+            <div class="password-panel-outer" style="width: 1200px; height: 850px; max-width: 98vw; max-height: 98vh;">
+                <img src="assets/Asset 27.svg" alt="Panel Çerçeve" class="password-panel-bg">
+                <div class="password-panel-content" style="align-items:center; padding: 40px; top: 120px;">
+                    <img src="assets/Asset 6.svg" alt="Skor Tablosu İkonu" class="security-icon" style="width: 70px; height: 70px;">
+                    <div class="password-title" style="font-size: 1.5rem;">SİBER GÜVENLİK SKOR TABLOSU</div>
+                    <div class="password-desc" style="margin-bottom: 20px; font-size: 1.3rem;">En iyi siber kahramanları keşfedin!</div>
+                    
+                    <div class="scoreboard-table" style="width: 100%; max-width: 900px; margin: 20px auto;">
+                        <div class="scoreboard-header" style="display: flex; background-color: rgba(108, 43, 207, 0.3); padding: 8px 12px; border-radius: 4px; margin-bottom: 3px; font-weight: bold; font-size: 0.9rem; line-height: 1.2;">
+                            <span style="flex: 0 0 70px; color: #ffaa00;">Sıra</span>
+                            <span style="flex: 1; color: #ffffff;">Kullanıcı Adı</span>
+                            <span style="flex: 0 0 140px; color: #ffffff; text-align: center;">Toplam Puan</span>
+                            <span style="flex: 0 0 100px; color: #ffffff; text-align: center;">Süre</span>
+                            <span style="flex: 0 0 140px; color: #ffffff; text-align: center;">Tarih</span>
+                        </div>
+                        <div id="scoreboard-list">
+                            <!-- Skor listesi burada dinamik olarak oluşturulacak -->
+                        </div>
+                    </div>
+                    
+                    <div class="scoreboard-buttons" style="display: flex; gap: 25px; margin-top: 30px;">
+                        <img src="assets/Asset 26.svg" alt="Yenile" id="refresh-scoreboard-btn" style="cursor: pointer; max-width: 170px; transition: transform 0.2s ease;">
+                        <img src="assets/Asset 22.svg" alt="Ana Menü" id="scoreboard-back-btn" style="cursor: pointer; max-width: 170px; transition: transform 0.2s ease;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scoreboard">
+            <img src="assets/Asset 6.svg" alt="Skor Tablosu" class="scoreboard-img" loading="lazy">
+        </div>
+    </div>
+
+    <script>
+    // Firebase Configuration - teknofest projesi
+    const firebaseConfig = {
+        apiKey: "AIzaSyB3ofVngr1rY6Zr2bTSE3PRFT1z104nMXo",
+        authDomain: "teknofest-c7a92.firebaseapp.com",
+        databaseURL: "https://teknofest-c7a92-default-rtdb.firebaseio.com",
+        projectId: "teknofest-c7a92",
+        storageBucket: "teknofest-c7a92.firebasestorage.app",
+        messagingSenderId: "478655816162",
+        appId: "1:478655816162:web:0cb7626d34935611ed59bb",
+        measurementId: "G-PG8ZFFEWJP"
+    };
+
+    // Firebase'i başlat (sadece geçerli config varsa)
+    let database = null;
+    let isFirebaseEnabled = false;
+    
+    // Firebase konfigürasyonunu kontrol et
+    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyExample...") {
+        // Firebase'i async olarak başlat
+        setTimeout(() => {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                isFirebaseEnabled = true;
+                console.log("✅ Firebase başarıyla bağlandı - Çoklu ekran modu aktif!");
+                console.log("🔗 Veritabanı URL:", firebaseConfig.databaseURL);
+            
+            // Mevcut status div'ini kaldır (temizlik)
+            const existingStatus = document.getElementById('firebase-status');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+            
+            // Bağlantı testini yap
+            database.ref('.info/connected').on('value', function(snapshot) {
+                if (snapshot.val() === true) {
+                    console.log("🌐 Firebase gerçek zamanlı bağlantı: AKTİF");
+                    showFirebaseStatus("🌐 Çoklu ekran modu: AKTİF", "#00ff99");
+                } else {
+                    console.log("⚠️ Firebase bağlantısı kopuk");
+                    showFirebaseStatus("⚠️ Bağlantı kopuk - Yerel mod", "#ffaa00");
+                }
+            });
+            
+        } catch (error) {
+            console.warn("❌ Firebase bağlantısı başarısız, yerel mod kullanılıyor:", error);
+            isFirebaseEnabled = false;
+            showFirebaseStatus("💾 Yerel mod - Sadece bu cihaz", "#ffaa00");
+        }
+        }, 300); // 300ms gecikme ile Firebase'i başlat
+    } else {
+        console.warn("⚙️ Firebase konfigürasyonu eksik, yerel mod kullanılıyor");
+        console.log("📋 Çoklu ekran için FIREBASE_KURULUM.md dosyasını okuyun");
+        isFirebaseEnabled = false;
+        showFirebaseStatus("⚙️ Firebase kurulum gerekli", "#ff4444");
+    }
+    
+    // Firebase durumunu ekranda göster (gizli mod)
+    function showFirebaseStatus(message, color) {
+        // Firebase durumu console'da görünsün ama ekranda görünmesin
+        if (message.includes("AKTİF")) {
+            console.log("🟢 " + message);
+        } else if (message.includes("kopuk")) {
+            console.log("🟡 " + message);
+        } else {
+            console.log("🔴 " + message);
+        }
+        
+        // Görsel mesaj gösterme (istenirse aktif edilebilir)
+        // Kullanıcı debug yapmak isterse bu kısmı açabilir
+    }
+
+    // Custom password analysis functions
+    function analyzePassword(password) {
+    let charsetSize = 0;
+    let usedSets = [];
+
+    if (/[a-z]/.test(password)) {
+        charsetSize += 26;
+        usedSets.push("Küçük harfler");
+    }
+    if (/[A-Z]/.test(password)) {
+        charsetSize += 26;
+        usedSets.push("Büyük harfler");
+    }
+    if (/[0-9]/.test(password)) {
+        charsetSize += 10;
+        usedSets.push("Sayılar");
+    }
+    if (/[^a-zA-Z0-9]/.test(password)) {
+        charsetSize += 32;
+        usedSets.push("Semboller");
+    }
+
+    const length = password.length;
+    const totalCombinations = Math.pow(charsetSize, length);
+
+    return { length, charsetSize, usedSets, totalCombinations };
+    }
+
+    function calculateCrackTimes(password) {
+        // Use zxcvbn for more accurate crack time estimation
+        const result = zxcvbn(password);
+        
+        // Get crack time display from zxcvbn
+        let crackTimeDisplay = result.crack_times_display.online_no_throttling_10_per_second;
+        if (!crackTimeDisplay || typeof crackTimeDisplay !== 'string') {
+            crackTimeDisplay = result.crack_times_display.offline_fast_hashing_1e10_per_second + ' (hızlı hash)';
+            if (typeof crackTimeDisplay !== 'string') crackTimeDisplay = 'N/A';
+        }
+        
+        // Localize time units to Turkish
+        crackTimeDisplay = crackTimeDisplay
+            .replace(/less than a second/gi, '1 saniyeden az')
+            .replace(/less than/gi, 'den az')
+            .replace(/centuries/gi, 'yüzyıl')
+            .replace(/century/gi, 'yüzyıl')
+            .replace(/years?/gi, 'yıl')
+            .replace(/year/gi, 'yıl')
+            .replace(/months?/gi, 'ay')
+            .replace(/month/gi, 'ay')
+            .replace(/days?/gi, 'gün')
+            .replace(/day/gi, 'gün')
+            .replace(/hours?/gi, 'saat')
+            .replace(/hour/gi, 'saat')
+            .replace(/minutes?/gi, 'dakika')
+            .replace(/minute/gi, 'dakika')
+            .replace(/seconds?/gi, 'saniye')
+            .replace(/second/gi, 'saniye')
+            .replace(/instantly/gi, 'anında')
+            .replace(/instant/gi, 'anında');
+            
+        return {
+            crackTimeDisplay: crackTimeDisplay,
+            score: result.score,
+            feedback: result.feedback
+        };
+    }
+
+    function getStrengthLevel(score) {
+        const strengthLevels = {
+            0: 'Çok Zayıf',
+            1: 'Zayıf', 
+            2: 'Orta',
+            3: 'İyi',
+            4: 'Çok Güçlü'
+        };
+        return strengthLevels[score] || 'Bilinmiyor';
+    }   
+    
+
+    function getStrengthColor(strength) {
+        switch(strength) {
+            case "Çok Zayıf": return "#FF0000";
+            case "Zayıf": return "#FF4500";
+            case "Orta": return "#FFAA00";
+            case "İyi": return "#32CD32";
+            case "Çok Güçlü": return "#008000";
+            default: return "#FFFFFF";
+        }
+    }
+
+    function getStrengthPoints(strength) {
+        switch(strength) {
+            case "Çok Zayıf": return 0;
+            case "Zayıf": return 10;
+            case "Orta": return 20;
+            case "İyi": return 40;
+            case "Çok Güçlü": return 50;
+            default: return 0;
+        }
+    }
+
+    // Zaman ve puan yönetimi
+    let timerInterval;
+    let timeLeft = 0;
+    let totalScore = 0;
+    let timerStarted = false;
+    let currentUsername = ''; // Kullanıcı adı
+    
+    // Bölüm skorları
+    let passwordScore = 0;
+    let shareScore = 0;
+    let phishingScore = 0;
+    
+    // Çoklu Ekran Skor Sistemi (Firebase + LocalStorage Hybrid)
+    function saveScore(username, score, time) {
+        const newScore = {
+            username: username,
+            score: score,
+            time: time,
+            date: new Date().toLocaleDateString('tr-TR'),
+            timestamp: Date.now(),
+            deviceId: getDeviceId()
+        };
+        
+        if (isFirebaseEnabled) {
+            // Firebase'e kaydet (tüm ekranlar görebilsin)
+            saveScoreToFirebase(newScore);
+        } else {
+            // Yerel olarak kaydet
+            saveScoreLocally(newScore);
+        }
+    }
+    
+    function saveScoreToFirebase(newScore) {
+        try {
+            // Firebase'e yeni skoru ekle
+            const scoresRef = database.ref('scores');
+            scoresRef.push(newScore).then(() => {
+                console.log("Skor Firebase'e başarıyla kaydedildi");
+                
+                // Skor limitini kontrol et ve eski skorları temizle
+                scoresRef.orderByChild('score').limitToLast(600).once('value', (snapshot) => {
+                    const allScores = [];
+                    snapshot.forEach((child) => {
+                        allScores.push({ key: child.key, ...child.val() });
+                    });
+                    
+                    // Sıralama: önce puan, sonra süre
+                    allScores.sort((a, b) => {
+                        if (b.score !== a.score) {
+                            return b.score - a.score;
+                        }
+                        const timeA = convertTimeToSeconds(a.time);
+                        const timeB = convertTimeToSeconds(b.time);
+                        return timeA - timeB;
+                    });
+                    
+                    // En fazla 500 skoru tut, fazlasını sil
+                    if (allScores.length > 500) {
+                        const toDelete = allScores.slice(500);
+                        toDelete.forEach(scoreToDelete => {
+                            scoresRef.child(scoreToDelete.key).remove();
+                        });
+                    }
+                });
+            }).catch((error) => {
+                console.error("Firebase'e skor kaydedilemedi:", error);
+                // Hata durumunda yerel olarak kaydet
+                saveScoreLocally(newScore);
+            });
+        } catch (error) {
+            console.error("Firebase kaydetme hatası:", error);
+            saveScoreLocally(newScore);
+        }
+    }
+    
+    function saveScoreLocally(newScore) {
+        const scores = getLocalScores();
+        scores.push(newScore);
+        
+        scores.sort((a, b) => {
+            if (b.score !== a.score) {
+                return b.score - a.score;
+            }
+            const timeA = convertTimeToSeconds(a.time);
+            const timeB = convertTimeToSeconds(b.time);
+            return timeA - timeB;
+        });
+        
+        // En fazla 50 skor tut (offline backup için)
+        if (scores.length > 50) {
+            scores.splice(50);
+        }
+        
+        localStorage.setItem('cyberScores', JSON.stringify(scores));
+    }
+    
+    function getScores() {
+        if (isFirebaseEnabled) {
+            return getScoresFromFirebase();
+        } else {
+            return Promise.resolve(getLocalScores());
+        }
+    }
+    
+    function getScoresFromFirebase() {
+        return new Promise((resolve, reject) => {
+            try {
+                const scoresRef = database.ref('scores');
+                scoresRef.orderByChild('score').limitToLast(600).once('value', (snapshot) => {
+                    const scores = [];
+                    snapshot.forEach((child) => {
+                        scores.push(child.val());
+                    });
+                    
+                    // Sıralama: önce puan, sonra süre
+                    scores.sort((a, b) => {
+                        if (b.score !== a.score) {
+                            return b.score - a.score;
+                        }
+                        const timeA = convertTimeToSeconds(a.time);
+                        const timeB = convertTimeToSeconds(b.time);
+                        return timeA - timeB;
+                    });
+                    
+                    resolve(scores);
+                }, (error) => {
+                    console.error("Firebase'den skorlar alınamadı:", error);
+                    // Hata durumunda yerel skorları döndür
+                    resolve(getLocalScores());
+                });
+            } catch (error) {
+                console.error("Firebase okuma hatası:", error);
+                resolve(getLocalScores());
+            }
+        });
+    }
+    
+    function getLocalScores() {
+        const scores = localStorage.getItem('cyberScores');
+        return scores ? JSON.parse(scores) : [];
+    }
+    
+    // Her cihaz için benzersiz ID oluştur
+    function getDeviceId() {
+        let deviceId = localStorage.getItem('deviceId');
+        if (!deviceId) {
+            deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            localStorage.setItem('deviceId', deviceId);
+        }
+        return deviceId;
+    }
+    
+    // Ana oyun skorboard'u için ekran boyutuna göre maksimum skor sayısı (Artırılmış)
+    function getMaxDisplayScores() {
+        const screenHeight = window.innerHeight;
+        const screenWidth = window.innerWidth;
+        
+        // 500+ skor optimizasyonu - büyük turnuva için daha fazla skor gösterimi
+        if (screenWidth >= 1400 && screenHeight >= 900) {
+            return 50; // Büyük ekran - 50 skor (500+ destekli)
+        } else if (screenWidth >= 1200 && screenHeight >= 768) {
+            return 35; // Orta büyük ekran - 35 skor
+        } else if (screenWidth >= 900 && screenHeight >= 600) {
+            return 25; // Orta ekran - 25 skor
+        } else if (screenWidth >= 600) {
+            return 20; // Küçük ekran - 20 skor
+        } else {
+            return 15; // Çok küçük ekran - 15 skor
+        }
+    }
+    
+    function convertTimeToSeconds(timeString) {
+        const parts = timeString.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+    
+    function displayScoreboard() {
+        const scoreboardList = document.getElementById('scoreboard-list');
+        
+        // Yükleniyor mesajı göster
+        scoreboardList.innerHTML = '<div style="text-align: center; color: #ffaa00; padding: 20px;">📊 Skorlar yükleniyor...</div>';
+        
+        getScores().then(scores => {
+            if (scores.length === 0) {
+                scoreboardList.innerHTML = '<div style="text-align: center; color: #cccccc; padding: 20px;">Henüz kayıtlı skor yok.</div>';
+                return;
+            }
+            
+            scoreboardList.innerHTML = '';
+            
+            // Ekran boyutuna göre gösterilecek skor sayısını belirle
+            const maxDisplayScores = getMaxDisplayScores();
+            const displayScores = scores.slice(0, maxDisplayScores);
+            
+            displayScores.forEach((score, index) => {
+                const row = document.createElement('div');
+                row.className = 'scoreboard-row';
+                if (index === 0) row.classList.add('top-score');
+                
+                // Device indicator ekle
+                const deviceIndicator = score.deviceId ? 
+                    `<span style="font-size: 0.7rem; color: #888; margin-left: 5px;">📱</span>` : '';
+                
+                row.innerHTML = `
+                    <span class="scoreboard-rank">${index + 1}</span>
+                    <span class="scoreboard-name">${score.username}${deviceIndicator}</span>
+                    <span class="scoreboard-score">${score.score}</span>
+                    <span class="scoreboard-time">${score.time}</span>
+                    <span class="scoreboard-date">${score.date}</span>
+                `;
+                
+                scoreboardList.appendChild(row);
+            });
+            
+            // Firebase durumu console'da yazdır (ekranda görünmez)
+            if (isFirebaseEnabled) {
+                console.log('🌐 Çoklu ekran modu aktif - Tüm cihazlardan skorlar');
+            } else {
+                console.log('💾 Yerel mod - Sadece bu cihazın skorları');
+            }
+        }).catch(error => {
+            console.error('Skorlar yüklenirken hata:', error);
+            scoreboardList.innerHTML = '<div style="text-align: center; color: #ff4444; padding: 20px;">❌ Skorlar yüklenemedi. Tekrar deneyin.</div>';
+        });
+    }
+    
+    // Ana oyunda gerçek zamanlı skorboard için dinleyici kurulumu
+    function setupGameRealtimeScoreboard() {
+        if (isFirebaseEnabled) {
+            console.log("🎮 Ana oyun: Gerçek zamanlı skorboard dinleyicisi başlatılıyor...");
+            const scoresRef = database.ref('scores');
+            
+            // Skorboard açık olduğunda gerçek zamanlı güncelleme
+            scoresRef.on('value', function(snapshot) {
+                // Sadece skorboard paneli açıksa güncelle
+                const scoreboardPanel = document.getElementById('scoreboard-panel');
+                if (scoreboardPanel && scoreboardPanel.style.display !== 'none') {
+                    console.log("🔄 Ana oyun: Skorboard gerçek zamanlı güncellendi");
+                    displayScoreboard();
+                }
+            });
+            
+            console.log("✅ Ana oyun: Gerçek zamanlı skorboard hazır!");
+        }
+    }
+
+    function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        timeLeft = 0;
+        updateTimer();
+        timerInterval = setInterval(() => {
+            timeLeft++;
+            updateTimer();
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+        timerStarted = false;
+    }
+
+    function updateTimer() {
+        const min = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const sec = String(timeLeft % 60).padStart(2, '0');
+        const timeText = `Süre: ${min}:${sec}`;
+        
+        // Tüm timer elementlerini güncelle
+        const timerElements = ['timer', 'timer-share', 'timer-phishing'];
+        timerElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = timeText;
+            }
+        });
+    }
+
+    function setScore(val) {
+        totalScore = val;
+        
+        // Tüm skor elementlerini güncelle
+        const scoreElements = ['score', 'score-share', 'score-phishing'];
+        scoreElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = totalScore;
+            }
+        });
+    }
+
+    function addScore(val) {
+        totalScore += val;
+        
+        // Tüm skor elementlerini güncelle
+        const scoreElements = ['score', 'score-share', 'score-phishing'];
+        scoreElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = totalScore;
+            }
+        });
+    }
+
+    document.getElementById('start-btn').onclick = function() {
+        document.getElementById('main-panel').style.display = 'none';
+        document.getElementById('username-panel').style.display = 'flex';
+        // Username input'una odaklan
+        setTimeout(() => {
+            document.getElementById('username-input').focus();
+        }, 100);
+    };
+
+    document.getElementById('play-btn').onclick = function() {
+        const usernameInput = document.getElementById('username-input');
+        const username = usernameInput.value.trim();
+        
+        // İsim kontrolü - boş olmamalı
+        if (!username || username.length === 0) {
+            alert('Lütfen kod adınızı giriniz!');
+            usernameInput.focus(); // Input alanına odaklan
+            return; // İsim girilmemişse devam etme
+        }
+        
+        // İsim çok kısa olmamalı
+        if (username.length < 2) {
+            alert('Kod adınız en az 2 karakter olmalıdır!');
+            usernameInput.focus();
+            return;
+        }
+        
+        // İsim çok uzun olmamalı
+        if (username.length > 20) {
+            alert('Kod adınız en fazla 20 karakter olabilir!');
+            usernameInput.focus();
+            return;
+        }
+        
+        // Username'i global değişkene kaydet
+        currentUsername = username;
+        
+        document.getElementById('username-panel').style.display = 'none';
+        document.getElementById('password-panel').style.display = 'flex';
+        startTimer();
+        setScore(0);
+        
+        // Parola inputları için event listener ekle
+        setupPasswordValidation();
+    };
+
+    // Enter tuşu ile de oyuna başlayabilme
+    document.getElementById('username-input').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            document.getElementById('play-btn').click();
+        }
+    });
+
+    function setupPasswordValidation() {
+        const password1 = document.getElementById('password-input-1');
+        const password2 = document.getElementById('password-input-2');
+        const button = document.getElementById('check-password-btn');
+        const message = document.getElementById('password-match-message');
+
+        function validatePasswords() {
+            const pass1 = password1.value;
+            const pass2 = password2.value;
+            
+            // Eğer her iki alan da boşsa hiçbir şey gösterme
+            if (!pass1 && !pass2) {
+                message.textContent = '';
+                button.style.opacity = '0.5';
+                button.style.pointerEvents = 'none';
+                return;
+            }
+            
+            // Eğer sadece birinci alan doluysa
+            if (pass1 && !pass2) {
+                message.textContent = 'Lütfen parolayı tekrar girin';
+                message.style.color = '#ffaa00';
+                button.style.opacity = '0.5';
+                button.style.pointerEvents = 'none';
+                return;
+            }
+            
+            // Her iki alan da doluysa kontrol et
+            if (pass1 && pass2) {
+                if (pass1 === pass2) {
+                    if (pass1.length > 12) {
+                        message.textContent = 'Parola 12 karakterden uzun olamaz!';
+                        message.style.color = '#ff4444';
+                        button.style.opacity = '0.5';
+                        button.style.pointerEvents = 'none';
+                    } else {
+                        message.textContent = 'Parolalar eşleşiyor ✓';
+                        message.style.color = '#39b54a';
+                        button.style.opacity = '1';
+                        button.style.pointerEvents = 'auto';
+                    }
+                } else {
+                    message.textContent = 'Parolalar eşleşmiyor!';
+                    message.style.color = '#ff4444';
+                    button.style.opacity = '0.5';
+                    button.style.pointerEvents = 'none';
+                }
+            }
+        }
+
+        // Her iki input'a da event listener ekle
+        password1.addEventListener('input', validatePasswords);
+        password2.addEventListener('input', validatePasswords);
+        
+        // Enter tuşu ile kontrol (sadece parolalar eşleşiyorsa)
+        password1.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter' && button.style.pointerEvents === 'auto') {
+                button.click();
+            }
+        });
+        password2.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter' && button.style.pointerEvents === 'auto') {
+                button.click();
+            }
+        });
+    }
+
+    document.getElementById('check-password-btn').onclick = function() {
+        const password = document.getElementById('password-input-1').value;
+        const confirmPassword = document.getElementById('password-input-2').value;
+        
+        // Eğer parolalar eşleşmiyorsa işlem yapma
+        if (!password || !confirmPassword || password !== confirmPassword) {
+            return;
+        }
+        
+        if (password.length > 12) {
+            alert('Parola 12 karakterden uzun olamaz!');
+            return;
+        }
+
+        // Input kutularını ve açıklama metnini gizle
+        document.getElementById('password-desc').style.display = 'none';
+        document.getElementById('password-input-wrapper').style.display = 'none';
+        document.getElementById('password-confirm-wrapper').style.display = 'none';
+        document.getElementById('password-match-message').style.display = 'none';
+        document.getElementById('password-check-btn-wrapper').style.display = 'none';
+        
+        // Use zxcvbn for accurate password analysis (like in old code)
+        const result = calculateCrackTimes(password);
+        const strength = getStrengthLevel(result.score);
+        const color = getStrengthColor(strength);
+        const points = getStrengthPoints(strength);
+        
+        passwordScore = points; // Parola puanını kaydet
+        addScore(points);
+        
+        // Parola gücüne göre ses çal
+        playPasswordStrengthSound(strength);
+        
+        document.getElementById('password-result').style.display = 'flex';
+        document.getElementById('password-result').innerHTML = `
+            <div id="strength-label"><span class="strength-badge" style="background:${color};color:#fff;">Güç: ${strength}</span></div>
+            <div id="crack-time">⚡ Kırılma Süresi: ${result.crackTimeDisplay}</div>
+            <div id="congrats-message">Tebrikler! Parolanızın gücünü test ettiniz.</div>
+            <div id="password-tips" style="
+                background: linear-gradient(135deg, rgba(0, 255, 153, 0.1), rgba(51, 255, 153, 0.1));
+                border: 1px solid rgba(0, 255, 153, 0.3);
+                border-radius: 8px;
+                padding: 2px;
+                margin: 10px 0;
+                font-size: 0.8rem;
+                line-height: 1.2;
+                color: #ffffff;
+                text-align: center;
+                max-width: 90%;
+                margin-left: auto;
+                margin-right: auto;
+            ">
+                <div style="color: #00ff99; font-weight: bold; margin-bottom: 5px;">
+                    🔐 Güçlü Parola İpuçları
+                </div>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 0.75rem;">
+                    <span style="background: rgba(0,255,153,0.2); padding: 3px 6px; border-radius: 4px;">12+ karakter</span>
+                    <span style="background: rgba(0,255,153,0.2); padding: 3px 6px; border-radius: 4px;">A-z karışımı</span>
+                    <span style="background: rgba(0,255,153,0.2); padding: 3px 6px; border-radius: 4px;">0-9 rakamlar</span>
+                    <span style="background: rgba(0,255,153,0.2); padding: 3px 6px; border-radius: 4px;">!@#$ semboller</span>
+                </div>
+                <div style="color: #ffaa00; font-size: 0.7rem; margin-top: 5px;">
+                    ⚠️ Kişisel bilgilerden kaçının!
+                </div>
+            </div>
+            <div id="next-task-btn" class="next-task-btn" style="display:block;">
+                <img src="assets/Asset 35.svg" alt="Paylaş/Sakla Görevine Geç">
+            </div>
+        `;
+        
+        // Şifre gücüne göre crack-time için CSS sınıfı ekle
+        const crackTimeElement = document.getElementById('crack-time');
+        if (crackTimeElement) {
+            // Mevcut sınıfları temizle
+            crackTimeElement.className = '';
+            
+            // Şifre gücüne göre sınıf ekle
+            switch(strength) {
+                case 'Çok Zayıf':
+                    crackTimeElement.classList.add('very-weak');
+                    break;
+                case 'Zayıf':
+                    crackTimeElement.classList.add('weak');
+                    break;
+                case 'Orta':
+                    crackTimeElement.classList.add('medium');
+                    break;
+                case 'İyi':
+                    crackTimeElement.classList.add('good');
+                    break;
+                case 'Çok Güçlü':
+                    crackTimeElement.classList.add('very-strong');
+                    break;
+            }
+        }
+    };
+
+    // PAYLAŞ/SAKLA butonuna tıklanınca panel geçişi
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#next-task-btn')) {
+            document.getElementById('password-panel').style.display = 'none';
+            document.getElementById('share-panel').style.display = 'flex';
+            
+            // Yeni share panel sistemini başlat
+            displayShareQuestions();
+        }
+        
+                                  // Phishing testine geçiş butonu
+         if (e.target.closest('#phishing-test-btn')) {
+             document.getElementById('share-panel').style.display = 'none';
+             document.getElementById('phishing-panel').style.display = 'flex';
+             
+             // İlk phishing sorusunu başlat
+             currentPhishingQuestion = 0;
+             showNextPhishingQuestion();
+         }
+         
+         // Ana ekrana dön butonu
+         if (e.target.closest('#final-back-btn')) {
+             // Final skor panelini gizle
+             document.getElementById('final-score-panel').style.display = 'none';
+             
+             // Tüm panelleri gizle
+             document.getElementById('main-panel').style.display = 'none';
+             document.getElementById('password-panel').style.display = 'none';
+             document.getElementById('share-panel').style.display = 'none';
+             document.getElementById('phishing-panel').style.display = 'none';
+             document.getElementById('scoreboard-panel').style.display = 'none';
+             
+             // Ana menü panelini göster
+             document.getElementById('main-panel').style.display = 'flex';
+             
+             // Kullanıcı adı input'unu temizle
+             const usernameInput = document.getElementById('username-input');
+             if (usernameInput) {
+                 usernameInput.value = '';
+             }
+             
+             // Oyunu tamamen sıfırla
+             totalScore = 0;
+             passwordScore = 0;
+             shareScore = 0;
+             phishingScore = 0;
+             timeLeft = 0;
+             timerStarted = false;
+             currentPhishingQuestion = 0;
+             
+             // Timer'ı durdur
+             if (timerInterval) {
+                 clearInterval(timerInterval);
+                 timerInterval = null;
+             }
+             
+             // Parola panelini sıfırla
+             const passwordInput = document.getElementById('password-input-1');
+             const confirmPasswordInput = document.getElementById('password-input-2');
+             if (passwordInput) passwordInput.value = '';
+             if (confirmPasswordInput) confirmPasswordInput.value = '';
+             
+             // Parola kontrol butonunu sıfırla
+             const checkBtn = document.getElementById('check-password-btn');
+             const checkBtnWrapper = document.getElementById('password-check-btn-wrapper');
+             if (checkBtn) {
+                 checkBtn.style.opacity = '0.5';
+                 checkBtn.style.pointerEvents = 'none';
+                 checkBtn.style.display = 'block';
+             }
+             if (checkBtnWrapper) {
+                 checkBtnWrapper.style.display = 'flex';
+             }
+             
+             // Parola match mesajını temizle
+             const matchMessage = document.getElementById('password-match-message');
+             if (matchMessage) {
+                 matchMessage.textContent = '';
+             }
+             
+             // Input wrapper'ları göster
+             const passwordWrapper = document.getElementById('password-input-wrapper');
+             const confirmWrapper = document.getElementById('password-confirm-wrapper');
+             if (passwordWrapper) passwordWrapper.style.display = 'flex';
+             if (confirmWrapper) confirmWrapper.style.display = 'flex';
+             
+             // Açıklamayı sıfırla
+             const passwordDesc = document.getElementById('password-desc');
+             if (passwordDesc) {
+                 passwordDesc.textContent = 'Parolanızı girin ve gücünü test edin.';
+             }
+             
+             // Parola güç sonuçlarını temizle
+             const strengthLabel = document.getElementById('strength-label');
+             const crackTime = document.getElementById('crack-time');
+             const congratsMessage = document.getElementById('congrats-message');
+             if (strengthLabel) strengthLabel.textContent = '';
+             if (crackTime) crackTime.textContent = '';
+             if (congratsMessage) congratsMessage.textContent = '';
+             
+             // Parola sonuçlarını temizle
+             const passwordResult = document.querySelector('.password-result');
+             if (passwordResult) passwordResult.style.display = 'none';
+             
+             const nextTaskBtn = document.getElementById('next-task-btn');
+             if (nextTaskBtn) nextTaskBtn.style.display = 'none';
+             
+             // Share panel'ı sıfırla (yeni sistem)
+             selectedAnswers = {};
+             shareQuestionsDisplayed = false;
+             
+             // Share panel öğelerini temizle
+             const shareContainer = document.getElementById('share-questions-container');
+             const shareResults = document.getElementById('share-results');
+             const shareSubmitBtn = document.getElementById('continue-to-phishing-btn');
+             
+             if (shareContainer) shareContainer.innerHTML = '';
+             if (shareResults) {
+                 shareResults.style.display = 'none';
+                 shareResults.innerHTML = '';
+             }
+             if (shareSubmitBtn) shareSubmitBtn.style.display = 'block';
+             
+             // Share panel açıklamasını sıfırla
+             const shareDesc = document.querySelector('#share-panel .password-desc');
+             if (shareDesc) {
+                 shareDesc.textContent = 'Aşağıdaki bilgilerden hangilerini güvenle paylaşabileceğini seç:';
+             }
+             
+             // Phishing panel'ı sıfırla
+             currentPhishingQuestion = 0;
+             
+             // Phishing panel açıklamasını temizle
+                 const phishingExplanation = document.getElementById('phishing-explanation');
+    if (phishingExplanation) {
+        phishingExplanation.textContent = '';
+        phishingExplanation.className = 'share-explanation';
+    }
+             
+             // Phishing butonlarını sıfırla
+             const phishingButtons = document.querySelectorAll('.phishing-button');
+             phishingButtons.forEach(btn => {
+                 btn.style.pointerEvents = 'auto';
+                 btn.style.opacity = '1';
+                 btn.style.transform = 'scale(1)';
+             });
+             
+             // Skor ve timer'ı sıfırla
+             setScore(0);
+             updateTimer();
+             
+             // Skor tablosunu güncelle
+             const scoreElements = ['score', 'score-share', 'score-phishing'];
+             scoreElements.forEach(id => {
+                 const element = document.getElementById(id);
+                 if (element) {
+                     element.textContent = '0';
+                 }
+             });
+         }
+        
+                 // Phishing test butonları
+         if (e.target.closest('.phishing-button')) {
+             const button = e.target.closest('.phishing-button');
+             const isCorrect = button.getAttribute('data-answer') === 'correct';
+             const explanation = document.getElementById('phishing-explanation');
+             
+             console.log("🎯 Phishing buton tıklandı:", {
+                 currentQuestion: currentPhishingQuestion,
+                 isCorrect: isCorrect,
+                 questionText: phishingQuestions[currentPhishingQuestion]?.text
+             });
+             
+             // Phishing ses efektini çal
+             playPhishingSound(isCorrect);
+             
+             if (isCorrect) {
+                 phishingScore += 10;
+                 addScore(10);
+                 explanation.textContent = phishingQuestions[currentPhishingQuestion].explanation;
+                 explanation.className = 'share-explanation correct';
+                 console.log("✅ Doğru cevap! +10 puan");
+             } else {
+                 phishingScore -= 5;
+                 addScore(-5);
+                 explanation.textContent = phishingQuestions[currentPhishingQuestion].explanation;
+                 explanation.className = 'share-explanation wrong';
+                 console.log("❌ Yanlış cevap! -5 puan");
+             }
+             
+             // Butonları devre dışı bırak
+             const allButtons = document.querySelectorAll('.phishing-button');
+             allButtons.forEach(btn => {
+                 btn.style.pointerEvents = 'none';
+                 btn.style.opacity = '0.7';
+                 btn.style.transform = 'none';
+             });
+             
+                         // 4 saniye sonra bir sonraki soruya geç (çocukların açıklamayı okuyabilmesi için)
+            setTimeout(() => {
+                currentPhishingQuestion++;
+                console.log("⏭️ Sonraki soruya geçiliyor:", currentPhishingQuestion);
+                showNextPhishingQuestion();
+            }, 4000);
+         }
+    });
+
+    // Phishing butonları için hover efekti
+    document.addEventListener('mouseover', function(e) {
+        if (e.target.closest('.phishing-button') && e.target.closest('.phishing-button').style.pointerEvents !== 'none') {
+            e.target.closest('.phishing-button').style.transform = 'scale(1.02)';
+        }
+    });
+
+    document.addEventListener('mouseout', function(e) {
+        if (e.target.closest('.phishing-button') && e.target.closest('.phishing-button').style.pointerEvents !== 'none') {
+            e.target.closest('.phishing-button').style.transform = 'scale(1)';
+        }
+    });
+
+    // PHISHING TEST - Çoklu Soru Sistemi
+    let phishingQuestions = [
+        {
+            text: "YouTube'da yorum görüyorsun: 'Bu kanala abone ol, ilk 100 kişiye iPhone hediye! Link profilimde'\nNe yaparsın?",
+            options: [
+                { text: "Profiline gidip linke tıklarım", correct: false },
+                { text: "Sahte olduğunu düşünür, tıklamam", correct: true },
+                { text: "Arkadaşlarıma da gönderir herkesi uyarırım", correct: false }
+            ],
+            explanation: "YouTube yorumlarındaki hediye linkler genellikle sahte. Gerçek kanallar böyle hediye vermez."
+        },
+        {
+            text: "WhatsApp'ta arkadaşından mesaj geliyor: 'Bu linke tıkla çok komik video var: bit.ly/xyz123'\nNe yaparsın?",
+            options: [
+                { text: "Arkadaşımdan geldiği için güvenle tıklarım", correct: false },
+                { text: "Önce arkadaşıma sorarak doğruluğunu kontrol ederim", correct: true },
+                { text: "Hemen tıklarım, arkadaşım gönderdi sonuçta", correct: false }
+            ],
+            explanation: "Arkadaşının hesabı çalınmış olabilir. Şüpheli linkler için önce kişiyi arayıp doğrulamak en iyisi."
+        },
+        {
+            text: "Telefonunda açılır pencere çıkıyor: 'DİKKAT! Telefonunuz virüslü. Hemen temizlemek için TIKLA'\nNe yaparsın?",
+            options: [
+                { text: "Hemen tıklarım, telefonum tehlikede", correct: false },
+                { text: "Bu sahte bir uyarı, kapatırım", correct: true },
+                { text: "Tıklayıp virüs programını indiririm", correct: false }
+            ],
+            explanation: "Açılır pencere virüs uyarıları genellikle sahte. Telefonlar böyle uyarı vermez, güvenlik uygulamanız verir."
+        },
+        {
+            text: "Instagram'dan DM geliyor: 'Şifren çalındı! Hesabını kurtarmak için buraya git: insta-guvenlik.com'\nNe yaparsın?",
+            options: [
+                { text: "Linke tıklamam, Instagram uygulamasından kontrol ederim", correct: true },
+                { text: "Hemen linke tıklayıp şifremi değiştiririm", correct: false },
+                { text: "Mesajdaki linke tıklayıp bilgilerimi veririm", correct: false }
+            ],
+            explanation: "Gerçek Instagram'ın adresi instagram.com'dur. Sahte siteler farklı adresler kullanır. Her zaman resmi uygulamayı kullan."
+        },
+        {
+            text: "Discord'da tanımadığın biri mesaj atıyor: 'Bedava Roblox/Minecraft premium hesap istiyorsan şifreni yaz'\nNe yaparsın?",
+            options: [
+                { text: "Bedava hesap için şifremi veririm", correct: false },
+                { text: "Bu bir tuzak, engellerim ve bildiririm", correct: true },
+                { text: "Arkadaşlarıma da söylerim belki onlar da ister", correct: false }
+            ],
+            explanation: "Asla kimseyle oyun şifrelerini paylaşma! Bedava hesap vaadiyle bilgilerini çalmaya çalışıyorlar."
+        }
+    ];
+    
+    let currentPhishingQuestion = 0;
+    
+    function showNextPhishingQuestion() {
+        console.log("🎯 Phishing soru gösteriliyor:", currentPhishingQuestion);
+        
+        // DOM elementlerinin varlığını kontrol et
+        const desc = document.getElementById('phishing-desc');
+        const buttons = document.querySelectorAll('.phishing-button');
+        const explanation = document.getElementById('phishing-explanation');
+        
+        if (!desc || buttons.length === 0) {
+            console.error("❌ Phishing DOM elementleri bulunamadı! Tekrar deneniyor...");
+            // 500ms sonra tekrar dene
+            setTimeout(() => {
+                showNextPhishingQuestion();
+            }, 500);
+            return;
+        }
+        
+        if (currentPhishingQuestion >= phishingQuestions.length) {
+            console.log("✅ Tüm phishing soruları tamamlandı");
+            // Tüm sorular tamamlandı
+            desc.textContent = 'Tebrikler! Phishing testini tamamladın!';
+            
+            // Butonları gizle
+            const container = document.querySelector('.phishing-buttons-container');
+            if (container) {
+                container.style.display = 'none';
+            }
+            
+            // Açıklama göster
+            if (explanation) {
+                explanation.innerHTML = `
+                    <div style="color: #ffffff; font-size: 1rem;">Oyun tamamlandı!</div>
+                `;
+            }
+            
+            // 0.9 saniye sonra final skor panelini göster
+            setTimeout(() => {
+                showFinalScorePanel();
+            }, 900);
+            return;
+        }
+        
+        const question = phishingQuestions[currentPhishingQuestion];
+        console.log("📝 Gösterilen soru:", question.text);
+        
+        // Soruyu güncelle
+        desc.innerHTML = question.text.replace(/\n/g, '<br>');
+        
+        // Butonları güncelle
+        buttons.forEach((button, index) => {
+            if (index < question.options.length) {
+                // Text div'ini bul veya oluştur
+                let textDiv = button.querySelector('div');
+                if (!textDiv) {
+                    // Eğer div yoksa oluştur
+                    textDiv = document.createElement('div');
+                    textDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: "Gilmer Light", sans-serif; font-size: 1rem; text-align: center; width: 90%; line-height: 1.2;';
+                    button.appendChild(textDiv);
+                }
+                
+                textDiv.textContent = question.options[index].text;
+                button.setAttribute('data-answer', question.options[index].correct ? 'correct' : 'wrong');
+                button.style.pointerEvents = 'auto';
+                button.style.opacity = '1';
+                button.style.transform = 'scale(1)';
+                button.style.display = 'block';
+                
+                console.log(`🔘 Buton ${index + 1}:`, question.options[index].text);
+            } else {
+                button.style.display = 'none';
+            }
+        });
+        
+        // Açıklamayı temizle
+        if (explanation) {
+            explanation.textContent = '';
+            explanation.className = 'share-explanation';
+        }
+        
+        // Container'ı görünür yap
+        const container = document.querySelector('.phishing-buttons-container');
+        if (container) {
+            container.style.display = 'flex';
+        }
+        
+        console.log("✅ Phishing sorusu başarıyla yüklendi");
+        
+        // İlk soru başarıyla yüklendiyse timeout'u iptal et
+        if (currentPhishingQuestion === 0 && window.phishingTimeoutId) {
+            clearTimeout(window.phishingTimeoutId);
+            window.phishingTimeoutId = null;
+            console.log("✅ Phishing test timeout iptal edildi - başarıyla yüklendi");
+        }
+    }
+     
+     // Final skor panelini göster
+     function showFinalScorePanel() {
+         // Zafer sesini çal
+         playFinalVictorySound();
+         
+         // Phishing panelini gizle
+         document.getElementById('phishing-panel').style.display = 'none';
+         
+         // Final skor panelini göster
+         document.getElementById('final-score-panel').style.display = 'flex';
+         
+         // Kullanıcı adını al
+         const username = currentUsername || 'Kullanıcı';
+         
+         // Süreyi hesapla
+         const min = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+         const sec = String(timeLeft % 60).padStart(2, '0');
+         const totalTime = `${min}:${sec}`;
+         
+         // Verileri doldur
+         document.getElementById('final-username').textContent = username;
+         document.getElementById('final-password-score').textContent = passwordScore + ' Puan';
+         document.getElementById('final-share-score').textContent = shareScore + ' Puan';
+         document.getElementById('final-phishing-score').textContent = phishingScore + ' Puan';
+         document.getElementById('final-total-time').textContent = totalTime;
+         document.getElementById('final-total-score').textContent = totalScore;
+         
+         // Skoru kaydet
+         saveScore(username, totalScore, totalTime);
+         
+         // Timer'ı durdur
+         stopTimer();
+     }
+
+    // PAYLAŞ/SAKLA paneli - 10 Soru Sistemi
+    let shareQuestions = [
+        { text: 'Adın ve Soyadın', shareable: false, explanation: 'Adınız ve soyadınız kişisel kimliğinizle doğrudan bağlantılıdır, internette tanımadığınız kişilerle paylaşmaktan kaçının.' },
+        { text: 'En sevdiğin renk', shareable: true, explanation: 'Renk tercihin seni tanımlar ama kişisel gizliliğini tehlikeye atmaz.' },
+        { text: 'E-posta adresin', shareable: false, explanation: 'E-posta adresiniz kimlik avı (oltalama) saldırıları için kullanılabilir. Güvenmediğiniz kişilerle paylaşmaktan kaçının.' },
+        { text: 'Telefon numaran', shareable: false, explanation: 'Telefon numaranız paylaşıldığında istenmeyen aramalar, mesajlar veya dolandırıcılık girişimlerine yol açabilir.' },
+        { text: 'Hobin (örneğin futbol)', shareable: true, explanation: 'Hobiler ve ilgi alanları ortak noktası olan insanlarla bağlantı kurmanın güvenli bir yoludur.' },
+        { text: 'TC kimlik numaran', shareable: false, explanation: 'Kimlik numaran çok özel bir bilgidir. Dolandırıcılık ve kimlik hırsızlığı için kullanılabilir, asla paylaşma.' },
+        { text: 'En sevdiğin film', shareable: true, explanation: 'Film zevkin güvenle paylaşılabilir ve yeni arkadaşlıklar kurman için ortak konu olabilir.' },
+        { text: 'Ev adresin', shareable: false, explanation: 'Ev adresiniz fiziksel güvenliğinizle ilgilidir. İnternette asla tanımadığınız kişilerle paylaşılmamalıdır.' },
+        { text: 'En sevdiğin spor', shareable: true, explanation: 'Spor tercihlerin güvenle paylaşılabilir ve yeni arkadaşlıklar kurmen için faydalı olabilir.' },
+        { text: 'Sosyal medya şifren', shareable: false, explanation: 'Şifreler asla paylaşılmamalıdır. Hesaplarının güvenliği için kritiktir.' }
+    ];
+
+    let selectedAnswers = {};
+    let shareQuestionsDisplayed = false;
+
+    // Parola gücüne göre ses efektleri
+    function playPasswordStrengthSound(strength) {
+        // Mobil vibrasyon deseni
+        const vibrationPatterns = {
+            'Çok Zayıf': [300, 150, 300, 150, 300, 150, 300], // SİREN TİTREŞİMİ - uzun alarm benzeri
+            'Zayıf': [100, 50, 100, 50, 100, 50, 100], // HIZLI ALARM TİTREŞİMİ
+            'Orta': [100, 50, 100], // Hafif titreşim
+            'İyi': [40, 20, 40, 20, 60, 30, 40, 20, 80], // CIVILTILI TİTREŞİM - tweet benzeri ritim
+            'Çok Güçlü': [30, 20, 30, 20, 30, 20, 30] // Çok hafif, ritmik
+        };
+
+        // Web Audio API ile ses üretimi
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Parola gücüne göre ses parametreleri
+            let duration, volume;
+            
+            switch(strength) {
+                case 'Çok Zayıf':
+                    // SİREN ALARM - Güvenlik alarmı benzeri
+                    oscillator.type = 'sawtooth';
+                    duration = 1.2;
+                    volume = 0.18;
+                    
+                    // Gerçek siren efekti - yavaş yukarı aşağı
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.3);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.6);
+                    oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.9);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 1.2);
+                    
+                    // İkinci oscilator ile daha güçlü siren
+                    const sirenOsc2 = audioContext.createOscillator();
+                    const sirenGain2 = audioContext.createGain();
+                    sirenOsc2.connect(sirenGain2);
+                    sirenGain2.connect(audioContext.destination);
+                    
+                    sirenOsc2.type = 'square';
+                    sirenOsc2.frequency.setValueAtTime(600, audioContext.currentTime);
+                    sirenOsc2.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.3);
+                    sirenOsc2.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.6);
+                    sirenOsc2.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.9);
+                    sirenOsc2.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 1.2);
+                    
+                    sirenGain2.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    sirenGain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.2);
+                    
+                    sirenOsc2.start(audioContext.currentTime);
+                    sirenOsc2.stop(audioContext.currentTime + 1.2);
+                    break;
+                    
+                case 'Zayıf':
+                    // UYARI SİRENİ - Kısa alarm benzeri
+                    oscillator.type = 'square';
+                    duration = 0.8;
+                    volume = 0.15;
+                    
+                    // Hızlı alarm efekti - wee-woo-wee-woo
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.3);
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.4);
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.5);
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.6);
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.7);
+                    break;
+                    
+                case 'Orta':
+                    // NÖTR SES - Düşük frekanslı, yumuşak
+                    oscillator.type = 'sine';
+                    duration = 0.4;
+                    volume = 0.08;
+                    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                    break;
+                    
+                case 'İyi':
+                    // CIVILTILI SES - Kuş benzeri neşeli melodi
+                    oscillator.type = 'sine';
+                    duration = 0.9;
+                    volume = 0.12;
+                    
+                    // Tweet-tweet benzeri cıvıltı melodisi
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime); // İlk tweet
+                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(700, audioContext.currentTime + 0.2); // İkinci tweet
+                    oscillator.frequency.exponentialRampToValueAtTime(900, audioContext.currentTime + 0.3);
+                    oscillator.frequency.setValueAtTime(650, audioContext.currentTime + 0.4); // Üçüncü tweet
+                    oscillator.frequency.exponentialRampToValueAtTime(850, audioContext.currentTime + 0.5);
+                    oscillator.frequency.setValueAtTime(750, audioContext.currentTime + 0.6); // Final tweet
+                    oscillator.frequency.exponentialRampToValueAtTime(950, audioContext.currentTime + 0.75);
+                    
+                    // İkinci oscilator ile daha cıvıltılı efekt
+                    const chirpOsc = audioContext.createOscillator();
+                    const chirpGain = audioContext.createGain();
+                    chirpOsc.connect(chirpGain);
+                    chirpGain.connect(audioContext.destination);
+                    
+                    chirpOsc.type = 'triangle';
+                    chirpOsc.frequency.setValueAtTime(1000, audioContext.currentTime + 0.15);
+                    chirpOsc.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.25);
+                    chirpOsc.frequency.setValueAtTime(1100, audioContext.currentTime + 0.35);
+                    chirpOsc.frequency.exponentialRampToValueAtTime(1300, audioContext.currentTime + 0.45);
+                    chirpOsc.frequency.setValueAtTime(1150, audioContext.currentTime + 0.55);
+                    chirpOsc.frequency.exponentialRampToValueAtTime(1350, audioContext.currentTime + 0.7);
+                    
+                    chirpGain.gain.setValueAtTime(0.06, audioContext.currentTime + 0.1);
+                    chirpGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                    
+                    chirpOsc.start(audioContext.currentTime + 0.1);
+                    chirpOsc.stop(audioContext.currentTime + 0.8);
+                    break;
+                    
+                case 'Çok Güçlü':
+                    // BAŞARI SESİ - Melodik, pozitif
+                    oscillator.type = 'sine';
+                    duration = 0.8;
+                    volume = 0.12;
+                    
+                    // Müzikal akor etkisi
+                    oscillator.frequency.setValueAtTime(523, audioContext.currentTime); // C
+                    oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.2); // E
+                    oscillator.frequency.setValueAtTime(783, audioContext.currentTime + 0.4); // G
+                    oscillator.frequency.setValueAtTime(1046, audioContext.currentTime + 0.6); // C yüksek
+                    break;
+                    
+                default:
+                    oscillator.type = 'sine';
+                    duration = 0.3;
+                    volume = 0.1;
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+            }
+
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+
+        } catch (e) {
+            console.log('Web Audio hatası:', e);
+        }
+
+        // Mobil titreşim
+        if (navigator.vibrate && vibrationPatterns[strength]) {
+            navigator.vibrate(vibrationPatterns[strength]);
+        }
+
+        // Konsol feedback
+        const emojis = {
+            'Çok Zayıf': '🚨🔴',
+            'Zayıf': '⚠️🟠',
+            'Orta': '🔶🟡',
+            'İyi': '🐦🎵',
+            'Çok Güçlü': '🎉🌟'
+        };
+        console.log(`${emojis[strength]} Parola Gücü: ${strength} - SES ÇALINDI!`);
+    }
+
+    // Phishing test için özel ses efektleri
+    function playPhishingSound(isCorrect) {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            if (isCorrect) {
+                // DOĞRU CEVAP - Net başarı sesi (ding-ding!)
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                
+                // İki telli başarı sesi - DING DING!
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Yüksek ding
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.2); // Daha yüksek ding
+                
+                // Net fade out
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.12, audioContext.currentTime + 0.2);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.45);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.45);
+                
+                // İkinci oscilator için echo efekti
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                
+                oscillator2.type = 'triangle';
+                oscillator2.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+                oscillator2.frequency.setValueAtTime(1400, audioContext.currentTime + 0.25);
+                gainNode2.gain.setValueAtTime(0.08, audioContext.currentTime + 0.1);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                
+                oscillator2.start(audioContext.currentTime + 0.1);
+                oscillator2.stop(audioContext.currentTime + 0.4);
+                
+                // Başarı titreşimi
+                if (navigator.vibrate) {
+                    navigator.vibrate([30, 20, 50]);
+                }
+                
+                console.log('✅ Phishing: Doğru cevap!');
+                
+            } else {
+                // YANLIŞ CEVAP - Buzzer, uyarı sesi
+                oscillator.type = 'square';
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                
+                // Buzzer efekti - düşük frekanslı alarm
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(100, audioContext.currentTime + 0.15);
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime + 0.3);
+                
+                // Keskin fade out
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+                
+                // Uyarı titreşimi
+                if (navigator.vibrate) {
+                    navigator.vibrate([150, 100, 150]);
+                }
+                
+                console.log('❌ Phishing: Yanlış cevap!');
+            }
+
+        } catch (e) {
+            console.log('Phishing ses hatası:', e);
+        }
+    }
+
+    // Final kutlama sesi - Parti müziği
+    function playFinalVictorySound() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            // KUTLAMA MÜZİĞİ - "Ta-ta-ta-TAAAA!" benzeri
+            const celebrationNotes = [
+                { freq: 784, time: 0.0, duration: 0.15, volume: 0.18 }, // G5 - Ta!
+                { freq: 880, time: 0.2, duration: 0.15, volume: 0.18 }, // A5 - Ta!
+                { freq: 988, time: 0.4, duration: 0.15, volume: 0.18 }, // B5 - Ta!
+                { freq: 1175, time: 0.6, duration: 0.6, volume: 0.22 }, // D6 - TAAAA!
+                
+                // İkinci dalga - daha yüksek
+                { freq: 1175, time: 1.0, duration: 0.1, volume: 0.15 }, // D6
+                { freq: 1319, time: 1.2, duration: 0.1, volume: 0.15 }, // E6
+                { freq: 1568, time: 1.4, duration: 0.4, volume: 0.2 },  // G6 - FINAL!
+            ];
+
+            celebrationNotes.forEach((note) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(note.freq, audioContext.currentTime + note.time);
+                
+                // Daha keskin attack - kutlama hissi
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime + note.time);
+                gainNode.gain.linearRampToValueAtTime(note.volume, audioContext.currentTime + note.time + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + note.time + note.duration);
+                
+                oscillator.start(audioContext.currentTime + note.time);
+                oscillator.stop(audioContext.currentTime + note.time + note.duration);
+            });
+
+            // KONFETI EFEKTİ - Rastgele yüksek frekanslı sesler
+            for (let i = 0; i < 8; i++) {
+                const confettiOsc = audioContext.createOscillator();
+                const confettiGain = audioContext.createGain();
+                
+                confettiOsc.connect(confettiGain);
+                confettiGain.connect(audioContext.destination);
+                
+                confettiOsc.type = 'sine';
+                const randomFreq = 1500 + Math.random() * 1000; // 1500-2500 Hz arası
+                const randomTime = 0.8 + Math.random() * 0.8; // 0.8-1.6 saniye arası
+                
+                confettiOsc.frequency.setValueAtTime(randomFreq, audioContext.currentTime + randomTime);
+                confettiGain.gain.setValueAtTime(0.03, audioContext.currentTime + randomTime);
+                confettiGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + randomTime + 0.1);
+                
+                confettiOsc.start(audioContext.currentTime + randomTime);
+                confettiOsc.stop(audioContext.currentTime + randomTime + 0.1);
+            }
+
+            // DAVUL BEAT - Kutlama ritmi
+            const drumBeats = [0.0, 0.6, 1.0, 1.4];
+            drumBeats.forEach((time) => {
+                const drumOsc = audioContext.createOscillator();
+                const drumGain = audioContext.createGain();
+                
+                drumOsc.connect(drumGain);
+                drumGain.connect(audioContext.destination);
+                
+                drumOsc.type = 'square';
+                drumOsc.frequency.setValueAtTime(80, audioContext.currentTime + time); // Bas davul
+                
+                drumGain.gain.setValueAtTime(0.12, audioContext.currentTime + time);
+                drumGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + 0.1);
+                
+                drumOsc.start(audioContext.currentTime + time);
+                drumOsc.stop(audioContext.currentTime + time + 0.1);
+            });
+
+            // KUTLAMA TİTREŞİMİ - Parti benzeri
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100, 50, 200, 100, 300, 100, 100, 50, 150]);
+            }
+
+            console.log('🎉🎊 KUTLAMA! Siber güvenlik kahramanı oldun! 🎊🎉');
+
+        } catch (e) {
+            console.log('Kutlama ses hatası:', e);
+        }
+    }
+
+    // Eski buzzer fonksiyonu (Share bölümünde hala kullanılıyor)
+    function playBuzzerSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+            
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.frequency.value = 200;
+            osc.type = 'square';
+            gain.gain.value = 0.1;
+            
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {
+            console.log('Web Audio hatası:', e);
+        }
+        
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+        }
+        
+        console.log('\x07');
+    }
+    
+    // Başarı sesi fonksiyonu (Share bölümü doğru seçimler için)
+    function playSuccessSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+            
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            // Pozitif müzikal ton - C major akor benzeri
+            osc.frequency.setValueAtTime(523, ctx.currentTime); // C5
+            osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1); // E5
+            osc.frequency.setValueAtTime(783, ctx.currentTime + 0.2); // G5
+            
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+            
+        } catch (e) {
+            console.log('Başarı sesi hatası:', e);
+        }
+        
+        // Pozitif titreşim
+        if (navigator.vibrate) {
+            navigator.vibrate([30, 20, 50]);
+        }
+        
+        console.log('✅ Doğru seçim!');
+    }
+    
+    // Yeni share panel fonksiyonları
+    function displayShareQuestions() {
+        if (shareQuestionsDisplayed) return;
+        
+        const container = document.getElementById('share-questions-container');
+        const resultsDiv = document.getElementById('share-results');
+        
+        // Temizle
+        container.innerHTML = '';
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+        
+        shareQuestions.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'share-question-item';
+            questionDiv.textContent = question.text;
+            questionDiv.setAttribute('data-index', index);
+            
+            questionDiv.addEventListener('click', function() {
+                const questionIndex = this.getAttribute('data-index');
+                toggleQuestionSelection(questionIndex, this);
+            });
+            
+            container.appendChild(questionDiv);
+        });
+        
+        // Gönderme butonunu göster ve stil ver
+        const submitBtn = document.getElementById('continue-to-phishing-btn');
+        if (submitBtn) {
+            submitBtn.style.display = 'block !important';
+            submitBtn.style.opacity = '1';
+            submitBtn.style.visibility = 'visible';
+            submitBtn.style.position = 'relative';
+            submitBtn.style.zIndex = '100';
+            submitBtn.style.width = '100%';
+            submitBtn.style.textAlign = 'center';
+            submitBtn.style.marginTop = '30px';
+            submitBtn.style.padding = '20px';
+        }
+        shareQuestionsDisplayed = true;
+    }
+    
+    function toggleQuestionSelection(index, element) {
+        if (selectedAnswers[index]) {
+            // Seçimi kaldır
+            delete selectedAnswers[index];
+            element.classList.remove('selected', 'correct', 'wrong');
+            
+            // Açıklamayı temizle
+            clearExplanation();
+        } else {
+            // Seçim yap
+            selectedAnswers[index] = true;
+            element.classList.add('selected');
+            
+            // Hemen kontrol et - doğru mu yanlış mı?
+            const question = shareQuestions[index];
+            const shouldBeSelected = question.shareable === true;
+            
+            if (shouldBeSelected) {
+                // Doğru seçim - PUAN ARTTIR ve SES ÇAL!
+                element.classList.add('correct');
+                shareScore += 30;
+                addScore(30);
+                playSuccessSound();
+            } else {
+                // Yanlış seçim - PUAN DÜŞÜR, SES ÇAL ve açıklama göster!
+                element.classList.add('wrong');
+                shareScore -= 15; // Yanlış cevap için puan düşür
+                addScore(-15);
+                playBuzzerSound();
+                showExplanation(question.explanation, false);
+            }
+        }
+        
+        // Submit butonunu al
+        const submitBtn = document.getElementById('continue-to-phishing-btn');
+        
+        // Tüm 10 soruya cevap verildi mi kontrol et
+        if (Object.keys(selectedAnswers).length === shareQuestions.length) {
+            // Tüm sorular cevaplandı - buton kullanıma hazır (turuncu efekt yok)
+            console.log("✅ Tüm sorular cevaplandı - Phishing testine geçebilirsiniz!");
+        }
+    }
+    
+    function showExplanation(text, isCorrect) {
+        // Mevcut açıklamayı kaldır
+        const existingModal = document.getElementById('explanation-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Merkezi açıklama modalı oluştur
+        const modalHTML = `
+            <div id="explanation-modal" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                background: rgba(0, 0, 0, 0.9);
+                color: ${isCorrect ? '#00ff99' : '#ff4444'};
+                border: 3px solid ${isCorrect ? '#00ff99' : '#ff4444'};
+                border-radius: 12px;
+                padding: 20px 30px;
+                max-width: 500px;
+                width: 90vw;
+                text-align: center;
+                font-size: 1.1rem;
+                line-height: 1.5;
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+                animation: modalFadeIn 0.3s ease-out;
+            ">
+                <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 10px;">
+                    ${isCorrect ? '✅ DOĞRU SEÇİM!' : '❌ YANLIŞ SEÇİM!'}
+                </div>
+                <div style="color: #ffffff; line-height: 1.4;">
+                    ${text}
+                </div>
+                <div style="margin-top: 15px; font-size: 0.9rem; color: #aaa;">
+                    Bu mesaj 5 saniye sonra kaybolacak...
+                </div>
+            </div>
+        `;
+        
+        // Body'ye ekle
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // 5 saniye sonra kaldır (çocukların okuyabileceği süre)
+        setTimeout(() => {
+            const modal = document.getElementById('explanation-modal');
+            if (modal) {
+                modal.style.animation = 'modalFadeOut 0.3s ease-in';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    function clearExplanation() {
+        // Modal'ı kaldır
+        const modal = document.getElementById('explanation-modal');
+        if (modal) {
+            modal.remove();
+        }
+        
+        // Share results div'ini de temizle
+        const explanationDiv = document.getElementById('share-results');
+        if (explanationDiv) {
+            explanationDiv.style.display = 'none';
+            explanationDiv.innerHTML = '';
+        }
+    }
+    
+    function showCompletionMessage() {
+        // Mevcut modalı kaldır
+        clearExplanation();
+        
+        // Özel tamamlama modalı
+        const modalHTML = `
+            <div id="explanation-modal" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                background: linear-gradient(135deg, #1a472a, #0f2817);
+                color: #00ff99;
+                border: 3px solid #00ff99;
+                border-radius: 15px;
+                padding: 25px 35px;
+                max-width: 550px;
+                width: 90vw;
+                text-align: center;
+                font-size: 1.1rem;
+                line-height: 1.5;
+                box-shadow: 0 0 40px rgba(0, 255, 153, 0.3);
+                animation: modalFadeIn 0.5s ease-out;
+            ">
+                <div style="font-size: 1.8rem; margin-bottom: 15px;">
+                    🎉 TEBRİKLER! 🎉
+                </div>
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #fff;">
+                    Tüm 10 soruyu cevapladınız!
+                </div>
+                <div style="color: #ffffff; line-height: 1.4; margin-bottom: 15px;">
+                    Phishing testine geçmek için aşağıdaki <strong>"Phishing Testine Geç"</strong> butonuna tıklayın.
+                </div>
+                <div style="font-size: 0.9rem; color: #aaa;">
+                    Bu mesaj 0.9 saniye sonra kaybolacak...
+                </div>
+            </div>
+        `;
+        
+        // Body'ye ekle
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // 0.9 saniye sonra kaldır
+        setTimeout(() => {
+            const modal = document.getElementById('explanation-modal');
+            if (modal) {
+                modal.style.animation = 'modalFadeOut 0.3s ease-in';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }, 900);
+    }
+    
+        function checkShareAnswers() {
+        // Basit tamamlanma mesajı göster
+        showCompletionModal();
+    }
+    
+    function showCompletionModal() {
+        // Mevcut modalları kaldır
+        clearExplanation();
+        
+        // Tamamlama modalı
+        const modalHTML = `
+            <div id="explanation-modal" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                max-width: 700px;
+                width: 85vw;
+                min-height: 400px;
+                text-align: center;
+                font-size: 1.3rem;
+                line-height: 1.5;
+                animation: modalFadeIn 0.5s ease-out;
+            ">
+                <img src="assets/Asset 43.svg" alt="Modal Çerçeve" style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 0;
+                    pointer-events: none;
+                ">
+                <div style="
+                    position: relative;
+                    z-index: 1;
+                    padding: 50px 40px;
+                    color: #ffffff;
+                ">
+                <div style="margin-bottom: 30px;">
+                    <img src="assets/Asset 46.svg" alt="Soru İşareti" style="max-width: 60px; height: auto;">
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; color: #fff;">
+                    Bölümü bitirmek istediğinize emin misiniz?
+                </div>
+                <div style="color: #ffffff; line-height: 1.4; margin-bottom: 30px; font-size: 1.2rem;">
+                    Bu işlemden sonra oltalama testine geçeceksiniz.
+                </div>
+                <div style="margin-top: 35px; display: flex; gap: 30px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <img src="assets/Asset 60.svg" alt="Geç" onclick="continueToPhishing()" style="
+                        max-width: 180px;
+                        cursor: pointer;
+                        transition: transform 0.2s ease;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    
+                    <img src="assets/Asset 61.svg" alt="Geçme" onclick="cancelToPhishing()" style="
+                        max-width: 180px;
+                        cursor: pointer;
+                        transition: transform 0.2s ease;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+                </div>
+            </div>
+        `;
+        
+        // Body'ye ekle
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    
+    function continueToPhishing() {
+        // Modal'ı kaldır
+        clearExplanation();
+        
+        // Phishing testine geç
+        showPhishingPanel();
+    }
+    
+    function cancelToPhishing() {
+        // Modal'ı kaldır
+        clearExplanation();
+        
+        // Paylaş/sakla bölümünde kal - hiçbir şey yapma, modal sadece kapansın
+        console.log("👤 Kullanıcı phishing testine geçmek istemedi, paylaş/sakla bölümünde kalıyor");
+    }
+    
+    // Phishing test acil durumu - eğer test tamamen çökerse kullan
+    window.emergencySkipPhishing = function() {
+        console.log("🚨 Acil durum: Phishing test atlanıyor");
+        
+        // Puanları sıfırla
+        phishingScore = 0;
+        
+        // Final skora geç
+        setTimeout(() => {
+            showFinalScorePanel();
+        }, 800);
+    };
+    
+    // Phishing test debug fonksiyonu
+    window.debugPhishingTest = function() {
+        console.log("🔍 Phishing Test Hata Ayıklama Bilgileri:");
+        console.log("- Mevcut Soru:", currentPhishingQuestion);
+        console.log("- Toplam Soru:", phishingQuestions.length);
+        console.log("- Phishing Puanı:", phishingScore);
+        
+        const desc = document.getElementById('phishing-desc');
+        const buttons = document.querySelectorAll('.phishing-button');
+        const explanation = document.getElementById('phishing-explanation');
+        const panel = document.getElementById('phishing-panel');
+        
+        console.log("- Açıklama Öğesi:", desc ? "✅ Bulundu" : "❌ Eksik");
+        console.log("- Buton Sayısı:", buttons.length);
+        console.log("- Açıklama Öğesi:", explanation ? "✅ Bulundu" : "❌ Eksik");
+        console.log("- Panel Görünür:", panel && panel.style.display !== 'none' ? "✅ Görünür" : "❌ Gizli");
+        
+        buttons.forEach((btn, index) => {
+            const textDiv = btn.querySelector('div');
+            console.log(`- Buton ${index + 1}:`, {
+                hasText: textDiv ? "✅ Metin div'i var" : "❌ Metin div'i yok",
+                text: textDiv ? textDiv.textContent : "Yok",
+                answer: btn.getAttribute('data-answer')
+            });
+        });
+        
+        if (buttons.length === 0) {
+            console.log("🚨 Hiç buton bulunamadı! emergencySkipPhishing() çalıştırın.");
+        }
+    };
+    
+
+    
+    // Mobil cihaz tespiti
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (window.innerWidth <= 768);
+    }
+    
+    // Mobil cihazda QR kodu gizle
+    function handleMobileDisplay() {
+        if (isMobileDevice()) {
+            const qrSection = document.querySelector('.qr-section');
+            if (qrSection) {
+                qrSection.style.display = 'none';
+            }
+            console.log('📱 Mobil cihaz tespit edildi - QR kod gizlendi');
+        }
+    }
+    
+    // QR Kod oluşturma fonksiyonu
+    function generateQRCode() {
+        try {
+            const currentURL = window.location.href;
+            const qrContainer = document.getElementById('qr-code-container');
+            
+            if (qrContainer && window.QRCode) {
+                // Mevcut QR kodu temizle
+                qrContainer.innerHTML = '';
+                
+                // Yeni QR kod oluştur
+                QRCode.toCanvas(qrContainer, currentURL, {
+                    width: 120,
+                    height: 120,
+                    margin: 2,
+                    color: {
+                        dark: '#0a1428',
+                        light: '#ffffff'
+                    }
+                }, function(error) {
+                    if (error) {
+                        console.error('QR kod oluşturulamadı:', error);
+                        qrContainer.innerHTML = '<div style="color: #ff4444; font-size: 0.8rem;">QR Kod Hatası</div>';
+                    } else {
+                        console.log('✅ QR kod başarıyla oluşturuldu');
+                    }
+                });
+            } else {
+                console.warn('QR kod kütüphanesi yüklenmedi');
+            }
+        } catch (error) {
+            console.error('QR kod oluşturma hatası:', error);
+        }
+    }
+
+    // Yükleme ekranını gizle
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }
+            
+            // QR kodu oluştur
+            setTimeout(generateQRCode, 1000);
+            
+            // Mobil cihaz kontrolü
+            handleMobileDisplay();
+            
+            // Mobil optimizasyonları uygula
+            optimizeForMobile();
+            
+            // Service Worker kaydı
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker başarıyla kaydedildi:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ Service Worker kaydı başarısız:', error);
+                    });
+            }
+        }, 800); // 0.8 saniye bekle
+    });
+    
+    // Ekran boyutu değişikliklerini dinle
+    window.addEventListener('resize', function() {
+        handleMobileDisplay();
+    });
+    
+    // Touch gesture desteği
+    let touchStartY = 0;
+    let touchEndY = 0;
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartY = e.touches[0].clientY;
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        touchEndY = e.changedTouches[0].clientY;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartY - touchEndY;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                // Yukarı kaydırma
+                console.log('👆 Yukarı kaydırma tespit edildi');
+            } else {
+                // Aşağı kaydırma
+                console.log('👇 Aşağı kaydırma tespit edildi');
+            }
+        }
+    }
+    
+    // Mobil cihazlar için ek optimizasyonlar
+    function optimizeForMobile() {
+        if (isMobileDevice()) {
+            // Mobil cihazlarda daha iyi performans
+            document.body.style.webkitFontSmoothing = 'antialiased';
+            document.body.style.mozOsxFontSmoothing = 'grayscale';
+            
+            // Mobil cihazlarda daha az animasyon
+            const style = document.createElement('style');
+            style.textContent = `
+                @media (max-width: 768px) {
+                    * {
+                        animation-duration: 0.2s !important;
+                        transition-duration: 0.2s !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            console.log('📱 Mobil optimizasyonlar uygulandı');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        var btnYes = document.getElementById('btn-share-yes');
+        var btnNo = document.getElementById('btn-share-no');
+        var explanation = document.getElementById('share-explanation');
+        
+        // Skor tablosu butonları
+        const scoreboardBtn = document.querySelector('.scoreboard-img').parentElement;
+        if (scoreboardBtn) {
+            scoreboardBtn.onclick = function() {
+                // Yeni pencerede skor tablosunu aç
+                openScoreboardWindow();
+            };
+        }
+        
+        // Yeni pencerede skor tablosu açma fonksiyonu
+        function openScoreboardWindow() {
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+            const windowWidth = Math.min(1400, screenWidth * 0.9);
+            const windowHeight = Math.min(900, screenHeight * 0.9);
+            const left = (screenWidth - windowWidth) / 2;
+            const top = (screenHeight - windowHeight) / 2;
+            
+            const scoreboardWindow = window.open(
+                'scoreboard.html',
+                'scoreboardWindow',
+                `width=${windowWidth},height=${windowHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no`
+            );
+            
+            if (scoreboardWindow) {
+                scoreboardWindow.focus();
+            } else {
+                // Popup engellenirse fallback olarak aynı pencerede aç
+                alert('Popup engellendi! Skor tablosunu aynı pencerede açıyorum.');
+                // Tüm panelleri gizle
+                document.getElementById('main-panel').style.display = 'none';
+                document.getElementById('username-panel').style.display = 'none';
+                document.getElementById('password-panel').style.display = 'none';
+                document.getElementById('share-panel').style.display = 'none';
+                document.getElementById('phishing-panel').style.display = 'none';
+                document.getElementById('final-score-panel').style.display = 'none';
+                
+                // Skor tablosu panelini göster
+                document.getElementById('scoreboard-panel').style.display = 'flex';
+                displayScoreboard();
+            }
+        }
+        
+        // Skor tablosu yenile butonu
+        const refreshBtn = document.getElementById('refresh-scoreboard-btn');
+        if (refreshBtn) {
+            refreshBtn.onclick = function() {
+                displayScoreboard();
+            };
+        }
+        
+        // Skor tablosu ana menü butonu
+        const scoreboardBackBtn = document.getElementById('scoreboard-back-btn');
+        if (scoreboardBackBtn) {
+            scoreboardBackBtn.onclick = function() {
+                document.getElementById('scoreboard-panel').style.display = 'none';
+                document.getElementById('main-panel').style.display = 'flex';
+            };
+        }
+        
+        // Firebase gerçek zamanlı skorboard sistemini başlat
+        setTimeout(() => {
+            setupGameRealtimeScoreboard();
+        }, 800);
+        
+                 // Yeni share panel event listeners
+         const submitAnswersBtn = document.getElementById('continue-to-phishing-btn');
+         if (submitAnswersBtn) {
+             submitAnswersBtn.onclick = function() {
+                 // Her durumda sonuç ekranını göster
+                 checkShareAnswers();
+             };
+         }
+        
+                 // Share panel fonksiyonu - phishing'ten geri dönüş için
+         window.showSharePanel = function() {
+             document.getElementById('password-panel').style.display = 'none';
+             document.getElementById('phishing-panel').style.display = 'none';
+             document.getElementById('share-panel').style.display = 'flex';
+             displayShareQuestions();
+         };
+         
+         // Phishing panel fonksiyonu
+         window.showPhishingPanel = function() {
+             console.log("🎮 Phishing paneline geçiliyor...");
+             
+             document.getElementById('share-panel').style.display = 'none';
+             document.getElementById('phishing-panel').style.display = 'flex';
+             
+             // İlk phishing sorusunu başlat
+             currentPhishingQuestion = 0;
+             
+             // 5 saniye timeout - eğer phishing test 5 saniyede yüklenmezse atla
+             const timeoutId = setTimeout(() => {
+                 console.log("⏰ Phishing test yükleme timeout - otomatik atlama");
+                 const desc = document.getElementById('phishing-desc');
+                 if (desc) {
+                     desc.innerHTML = 'Teknik sorun nedeniyle test atlanıyor...<br>Final skora geçiliyor.';
+                 }
+                 setTimeout(() => {
+                     emergencySkipPhishing();
+                 }, 800);
+             }, 5000);
+             
+             // Global olarak sakla (başarılı yüklendiğinde iptal etmek için)
+             window.phishingTimeoutId = timeoutId;
+             
+             // DOM'un tam yüklenmesini bekle
+             setTimeout(() => {
+                 console.log("🚀 Phishing test başlatılıyor...");
+                 initializePhishingTest();
+             }, 100);
+         };
+         
+         // Phishing test başlatma fonksiyonu
+         function initializePhishingTest() {
+             console.log("🔧 Phishing test initialize ediliyor...");
+             
+             // Phishing panel'ının görünür olduğunu kontrol et
+             const phishingPanel = document.getElementById('phishing-panel');
+             if (!phishingPanel || phishingPanel.style.display === 'none') {
+                 console.error("❌ Phishing panel görünür değil!");
+                 return;
+             }
+             
+             // Tüm phishing butonlarının mevcut olduğunu kontrol et
+             const buttons = document.querySelectorAll('.phishing-button');
+             if (buttons.length === 0) {
+                 console.error("❌ Phishing butonları bulunamadı!");
+                 return;
+             }
+             
+             // Butonları temizle ve hazırla
+             buttons.forEach((button, index) => {
+                 button.style.display = 'block';
+                 button.style.pointerEvents = 'auto';
+                 button.style.opacity = '1';
+                 button.style.transform = 'scale(1)';
+                 
+                 // Div yoksa oluştur
+                 let textDiv = button.querySelector('div');
+                 if (!textDiv) {
+                     textDiv = document.createElement('div');
+                     textDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: "Gilmer Light", sans-serif; font-size: 1rem; text-align: center; width: 90%; line-height: 1.2;';
+                     button.appendChild(textDiv);
+                 }
+             });
+             
+             console.log(`✅ ${buttons.length} phishing butonu hazırlandı`);
+             
+             // İlk soruyu göster
+             currentPhishingQuestion = 0;
+             showNextPhishingQuestion();
+         };
+    });
+    </script>
+</body>
+</html> 
